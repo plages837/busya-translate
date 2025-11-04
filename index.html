@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Быстрый нейросетевой перевод на базе Яндекс.Переводчика">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: chrome-extension: js.puter.com api.openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' 'inline-speculation-rules' https: chrome-extension: js.puter.com; style-src 'self' 'unsafe-inline' https: chrome-extension:; font-src 'self' data: blob: https: chrome-extension:; img-src 'self' data: blob: https: chrome-extension:; connect-src 'self' https: ws: wss: js.puter.com api.openrouter.ai;">
+    <title>Busya Translate - Нейросетевой перевод</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://js.puter.com/v2/"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>🌍 Busya Translate</h1>
+                <div class="header-controls">
+                    <button id="themeToggle" class="theme-toggle-btn" title="Переключить тему" data-i18n-title="toggle-theme">🌙</button>
+                    <select id="interfaceLanguage" class="interface-language-select" title="Выбор языка интерфейса">
+                        <option value="ru">🇷🇺 Русский</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                    </select>
+                </div>
+            </div>
+            <p class="subtitle" data-i18n="subtitle">Быстрый нейросетевой перевод на базе Яндекс.Переводчика</p>
+        </header>
+
+        <div class="translation-box">
+            <div class="input-section">
+                <div class="lang-selector">
+                    <select id="sourceLang">
+                        <option value="auto" data-i18n="auto-detect">Автоматическое определение</option>
+                        <option value="en">English</option>
+                        <option value="ru">Русский</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="pt">Português</option>
+                        <option value="zh">中文</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                    <button class="swap-btn" id="swapBtn" title="Поменять языки" data-i18n-title="swap-languages">⇄</button>
+                    <select id="targetLang">
+                        <option value="en">English</option>
+                        <option value="ru" selected>Русский</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="pt">Português</option>
+                        <option value="zh">中文</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+                <div class="textarea-wrapper">
+                    <textarea 
+                        id="sourceText" 
+                        placeholder="Введите текст для перевода..."
+                        data-i18n-placeholder="enter-text"
+                        rows="6"
+                    ></textarea>
+                    <button class="clear-btn" id="clearSourceBtn" title="Очистить текст" data-i18n-title="clear-text">✕</button>
+                </div>
+                <div class="input-actions">
+                    <div class="char-count">
+                        <span id="charCount">0</span> <span data-i18n="characters">символов</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="result-header">
+                    <span data-i18n="translation">Перевод</span>
+                    <div class="action-buttons">
+                        <select id="exportFormat" class="export-select" title="Выберите формат экспорта" data-i18n-title="select-export-format">
+                            <option value="txt">📄 TXT</option>
+                            <option value="json">📦 JSON</option>
+                            <option value="html">🌐 HTML</option>
+                            <option value="py">🐍 Python</option>
+                        </select>
+                        <button class="export-btn" id="exportBtn" title="Экспортировать перевод" data-i18n-title="export-translation" data-i18n="export">📥 Экспорт</button>
+                        <button class="clear-btn" id="clearOutputBtn" title="Очистить перевод" data-i18n-title="clear-translation">✕</button>
+                    </div>
+                </div>
+                <div class="textarea-wrapper">
+                    <div id="translatedText" class="translated-text">
+                        <div class="placeholder" data-i18n="translation-placeholder">Перевод появится здесь...</div>
+                    </div>
+                </div>
+                <div class="loading" id="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <span data-i18n="translating">Перевод с помощью нейросети...</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="translate-btn" id="translateBtn">
+            <span data-i18n="translate">Перевести</span>
+            <span class="icon">→</span>
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <!-- AI Chat Section -->
+        <div class="chat-section" id="chatSection">
+            <div class="chat-header">
+                <h3 data-i18n="ai-teacher">🤖 AI Преподаватель</h3>
+                <button class="toggle-chat-btn" id="toggleChatBtn" title="Свернуть/развернуть чат" data-i18n-title="toggle-chat">−</button>
+            </div>
+            <div class="chat-content" id="chatContent">
+                <div class="chat-settings">
+                    <div class="chat-setting-row">
+                        <label for="chatModel" class="chat-model-label" data-i18n="ai-model">Модель ИИ:</label>
+                        <select id="chatModel" class="chat-model-select" title="Выберите модель ИИ" data-i18n-title="select-ai-model">
+                            <option value="openrouter:deepseek/deepseek-v3.2-exp">Busya AI 1</option>
+                            <option value="openrouter:openai/o3-pro">Busya AI 2</option>
+                            <option value="openrouter:openai/gpt-5">Busya AI 3</option>
+                        </select>
+                    </div>
+                    <div class="chat-setting-row">
+                        <label for="chatLanguage" class="chat-model-label" data-i18n="response-language">Язык ответа:</label>
+                        <select id="chatLanguage" class="chat-model-select" title="Выберите язык ответа" data-i18n-title="select-response-language">
+                            <option value="en">English</option>
+                            <option value="ru" selected>Русский</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="it">Italiano</option>
+                            <option value="pt">Português</option>
+                            <option value="zh">中文</option>
+                            <option value="ja">日本語</option>
+                            <option value="ko">한국어</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message ai-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-text" data-i18n="chat-welcome">
+                            Привет! Я ваш AI преподаватель. Задавайте вопросы, практикуйте язык или изучайте новые слова. Как я могу вам помочь сегодня?
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <textarea 
+                        id="chatInput" 
+                        placeholder="Задайте любой вопрос..."
+                        data-i18n-placeholder="ask-anything"
+                        rows="2"
+                    ></textarea>
+                    <button class="chat-send-btn" id="chatSendBtn" title="Отправить сообщение" data-i18n-title="send-message">→</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="sponsor-footer">
+            <div class="contact-section">
+                <a href="https://t.me/busyapay" target="_blank" rel="noopener noreferrer" class="telegram-channel-btn">
+                    <span class="telegram-icon">📱</span>
+                    <span data-i18n="telegram-channel">Telegram канал</span>
+                </a>
+                <p class="thank-you-text" data-i18n="thank-you">Thank you for using our products. Залетайте в telegram канал наш. Там ещё больше их.</p>
+            </div>
+            <div class="documentation-link-section">
+                <a href="documentation.html" class="documentation-link" data-i18n="documentation-title">📚 Документация</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
